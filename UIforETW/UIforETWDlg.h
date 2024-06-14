@@ -61,7 +61,7 @@ private:
 	// Auto-save trace if tracing to a file runs for longer than this length of time.
 	// Otherwise the trace files can fill hard drives and be unusably large.
 	// This should be configurable. But it is not.
-	static constexpr ULONGLONG kMaxFileTraceMs = 300000;
+	static constexpr ULONGLONG kMaxFileTraceMs = 1800000;
 
 	CButton btStartTracing_;
 	CButton btSaveTraceBuffers_;
