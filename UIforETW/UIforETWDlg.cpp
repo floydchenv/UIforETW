@@ -133,7 +133,7 @@ CUIforETWDlg::CUIforETWDlg(CWnd* pParent /*=NULL*/) noexcept
 	pMainWindow = this;
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
-	TransferSettings(false);
+	TransferSettings(true);
 }
 
 CUIforETWDlg::~CUIforETWDlg()
@@ -1092,7 +1092,8 @@ void CUIforETWDlg::OnBnClickedStarttracing()
 		kernelStackWalk = L" -stackwalk " + kernelStackWalk.substr(1);
 	// Buffer sizes are in KB, so 1024 is actually 1 MB
 	// Make this configurable.
-	const int numKernelBuffers = BufferCountBoost(600);
+	//const int numKernelBuffers = BufferCountBoost(200);
+	const int numKernelBuffers = 128;
 	std::wstring kernelBuffers = stringPrintf(L" -buffersize 1024 -minbuffers %d -maxbuffers %d", numKernelBuffers, numKernelBuffers);
 	std::wstring kernelFile = L" -f \"" + GetKernelFile() + L"\"";
 	if (tracingMode_ == kTracingToMemory)
@@ -1112,11 +1113,13 @@ void CUIforETWDlg::OnBnClickedStarttracing()
 	// This should also make the UI Delays and window-in-focus graphs more
 	// reliable, by not having them lose messages so frequently, although it is not
 	// clear that it actually helps.
-	constexpr uint64_t kCritFlags = 0x0200000010000000;
-	std::wstring userProviders = stringPrintf(L"Microsoft-Windows-Win32k:0x%llx", ~kCritFlags);
+	//constexpr uint64_t kCritFlags = 0x0200000010000000;
+    //std::wstring userProviders = stringPrintf(L"Microsoft-Windows-Win32k:0x%llx", ~kCritFlags);
+	std::wstring userProviders = L"";
 	if (IsWindowsVistaOrLesser())
 		userProviders = L"Microsoft-Windows-LUA"; // Because Microsoft-Windows-Win32k doesn't work on Vista.
-	userProviders += L"+Multi-MAIN+Multi-FrameRate+Multi-Input+Multi-Worker";
+    //userProviders += L"+Multi-MAIN+Multi-FrameRate+Multi-Input+Multi-Worker";
+    userProviders += L"Multi-MAIN+Multi-FrameRate";
 	// Recommended IE/Chromium JavaScript tracing settings per https://bugs.chromium.org/p/v8/issues/detail?id=11043#c15
 	// Note that currently Chromium must be built with v8_enable_system_instrumentation = true.
 	if (bTraceJavaScript_)
@@ -1162,7 +1165,7 @@ void CUIforETWDlg::OnBnClickedStarttracing()
 	// Look at SystemTimeResolutionChange and SystemTimeResolutionKernelChange, and in
 	// particular at the RequestedResolution field (units are 0.1 microseconds, so 
 	// 0x2710 == 10,000 = 1 ms).
-	userProviders += L"+Microsoft-Windows-Kernel-Power";
+	//userProviders += L"+Microsoft-Windows-Kernel-Power";
 
 	// If the Chrome providers were successfully registered and if the user has requested tracing
 	// some of Chrome's categories (keywords/flags) then add chrome:flags to the list of user
@@ -1205,7 +1208,9 @@ void CUIforETWDlg::OnBnClickedStarttracing()
 	}
 
 	// Increase the user buffer sizes when doing graphics tracing or Chrome tracing.
-	const int numUserBuffers = BufferCountBoost(bGPUTracing_ ? 200 : 100) + BufferCountBoost(useChromeProviders_ ? 100 : 0);
+	//const int numUserBuffers = BufferCountBoost(bGPUTracing_ ? 100 : 25) + BufferCountBoost(useChromeProviders_ ? 0 : 0);
+	const int numUserBuffers = 32;
+	//BufferCountBoost(bGPUTracing_ ? 100 : 25) + BufferCountBoost(useChromeProviders_ ? 0 : 0);
 	std::wstring userBuffers = stringPrintf(L" -buffersize 1024 -minbuffers %d -maxbuffers %d", numUserBuffers, numUserBuffers);
 	std::wstring userFile = L" -f \"" + GetUserFile() + L"\"";
 	if (tracingMode_ == kTracingToMemory)

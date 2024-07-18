@@ -69,13 +69,13 @@ private:
 
 	void TransferSettings(bool saving);
 
-	bool bCompress_ = true;
+	bool bCompress_ = false;
 	bool bCswitchStacks_ = true;
 	bool bSampledStacks_ = true;
-	bool bFastSampling_ = false;
+	bool bFastSampling_ = true;
 	bool bGPUTracing_ = false;
 	bool bCLRTracing_ = false;
-	bool bShowCommands_ = false;
+	bool bShowCommands_ = true;
 	CButton btCompress_;
 	CButton btCswitchStacks_;
 	CButton btSampledStacks_;
@@ -102,11 +102,11 @@ private:
 
 	bool useChromeProviders_ = false;
 
-	KeyLoggerState InputTracing_ = kKeyLoggerAnonymized;
+	KeyLoggerState InputTracing_ = kKeyLoggerOff;
 	CComboBox btInputTracing_;
 	CStatic btInputTracingLabel_;
 
-	TracingMode tracingMode_ = kTracingToFile;
+	TracingMode tracingMode_ = kTracingToMemory;
 	// Increase the buffer count by some proportion when tracing to a file
 	// on a large-memory machine.
 	int BufferCountBoost(int requestCount) const noexcept;
