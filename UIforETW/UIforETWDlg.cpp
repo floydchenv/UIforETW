@@ -1058,7 +1058,7 @@ void CUIforETWDlg::OnBnClickedStarttracing()
 		outputPrintf(L"DISK_IO provider is omitted when using circular-buffer tracing. If DISK_IO is needed then manually add it in Settings-> Extra kernel flags.\n");
 		latency = L" PROC_THREAD+LOADER+HARD_FAULTS+DPC+INTERRUPT+CSWITCH+PROFILE";
 	}
-	std::wstring kernelProviders = latency + L"+POWER+DISPATCHER+DISK_IO_INIT+FILE_IO+FILE_IO_INIT+VIRT_ALLOC+MEMINFO";
+	std::wstring kernelProviders = latency + L"+PROC_THREAD+FILE_IO+FILE_IO_INIT+VIRT_ALLOC+MEMINFO+HARD_FAULTS+DPC+DISK_IO+LOADER+INTERRUPT";
 	bool cswitch_and_profile = true;
 	if (tracingMode_ == kHeapTracingToFile)
 	{
@@ -1070,20 +1070,22 @@ void CUIforETWDlg::OnBnClickedStarttracing()
 	}
 	if (!extraKernelFlags_.empty())
 		kernelProviders += L"+" + extraKernelFlags_;
-	std::wstring kernelStackWalk;
+    std::wstring kernelStackWalk = L" HardFault+PagefaultTransition+PagefaultDemandZero+PagefaultCopyOnWrite+PagefaultGuard+PagefaultHard+PagefaultAV+VirtualAlloc+VirtualFree+PagefileBackedImageMapping";
 	// Record CPU sampling call stacks, from the PROFILE provider
 	if (bSampledStacks_ && cswitch_and_profile)
 		kernelStackWalk += L"+Profile";
 	// Record context-switch (switch in) and readying-thread (SetEvent, etc.)
 	// call stacks from DISPATCHER provider.
-	if (bCswitchStacks_ && cswitch_and_profile)
-		kernelStackWalk += L"+CSwitch+ReadyThread";
+	//if (bCswitchStacks_ && cswitch_and_profile)
+	//	kernelStackWalk += L"+CSwitch+ReadyThread";
 	// Record VirtualAlloc call stacks from the VIRT_ALLOC provider. Also
 	// record VirtualFree to allow investigation of memory leaks, even though
 	// WPA fails to display these stacks. You can use
 	// UIforETW\bin\VirtualFreeStacks.py to summarize the VirtualFree stacks.
-	if (bVirtualAllocStacks_ || tracingMode_ == kHeapTracingToFile)
+	if (kernelStackWalk.find(L"VirtualAlloc") == -1 && bVirtualAllocStacks_ || tracingMode_ == kHeapTracingToFile)
+	{
 		kernelStackWalk += L"+VirtualAlloc+VirtualFree";
+	}
 	// Add in any manually requested call stack flags.
 	if (!extraKernelStacks_.empty())
 		kernelStackWalk += L"+" + extraKernelStacks_;
@@ -1093,7 +1095,7 @@ void CUIforETWDlg::OnBnClickedStarttracing()
 	// Buffer sizes are in KB, so 1024 is actually 1 MB
 	// Make this configurable.
 	//const int numKernelBuffers = BufferCountBoost(200);
-	const int numKernelBuffers = 128;
+	const int numKernelBuffers = 4096;
 	std::wstring kernelBuffers = stringPrintf(L" -buffersize 1024 -minbuffers %d -maxbuffers %d", numKernelBuffers, numKernelBuffers);
 	std::wstring kernelFile = L" -f \"" + GetKernelFile() + L"\"";
 	if (tracingMode_ == kTracingToMemory)

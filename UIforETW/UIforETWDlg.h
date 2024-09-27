@@ -69,7 +69,7 @@ private:
 
 	void TransferSettings(bool saving);
 
-	bool bCompress_ = false;
+	bool bCompress_ = true;
 	bool bCswitchStacks_ = true;
 	bool bSampledStacks_ = true;
 	bool bFastSampling_ = true;
@@ -106,14 +106,14 @@ private:
 	CComboBox btInputTracing_;
 	CStatic btInputTracingLabel_;
 
-	TracingMode tracingMode_ = kTracingToMemory;
+	TracingMode tracingMode_ = kTracingToFile;
 	// Increase the buffer count by some proportion when tracing to a file
 	// on a large-memory machine.
 	int BufferCountBoost(int requestCount) const noexcept;
 	CComboBox btTracingMode_;
-	std::wstring heapTracingExes_ = L"chrome.exe";
+	std::wstring heapTracingExes_ = L"deltaforceclient-win64-shipping.exe";
 	void SetHeapTracing(bool forceOff);
-	bool bVirtualAllocStacks_ = false;
+	bool bVirtualAllocStacks_ = true;
 	// ETW keywords, also known as flags, map to Chrome categories.
 	// Confused yet?
 	uint64_t chromeKeywords_ = 0;
@@ -131,7 +131,7 @@ private:
 
 	// This starts and stops a thread that checks for new versions of UIforETW
 	CVersionChecker versionCheckerThread_;
-	bool bVersionChecks_ = true;
+	bool bVersionChecks_ = false;
 
 	// This starts and stops a thread that monitors battery status.
 	CPowerStatusMonitor PowerMonitor_;
@@ -235,7 +235,7 @@ private:
 	// Editable only by the settings dialog.
 	bool bBackgroundMonitoring_ = true;
 	bool bChromeDeveloper_ = false;
-	bool bRecordTraceCommand_ = false; // Should the trace command be put in the .txt file?
+	bool bRecordTraceCommand_ = true; // Should the trace command be put in the .txt file?
 	bool bTraceJavaScript_ = false; // Should we trace IE/Chrome JavaScript?
 	bool bIdentifyChromeProcessesCPU_ = false;
 	bool bAutoViewTraces_ = false;
