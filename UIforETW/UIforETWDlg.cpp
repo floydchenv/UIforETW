@@ -721,6 +721,16 @@ BOOL CUIforETWDlg::OnInitDialog()
 	// Resize our window per the previous dimensions if we have them
 	SetWindowPos(nullptr, 0, 0, previousWidth_, previousHeight_, flags);
 
+    LANGID langId = GetUserDefaultUILanguage();
+    WORD primaryLangId = PRIMARYLANGID(langId);
+    if(primaryLangId == LANG_CHINESE)
+	{
+		// 设置按钮文本
+		SetDlgItemText(IDC_STARTTRACING, _T("开始采集 (Ctrl+Win+R)"));
+		SetDlgItemText(IDC_SAVETRACEBUFFERS, _T("保存数据 (Ctrl+Win+R)"));
+        SetDlgItemText(IDC_STOPTRACING, _T("取消采集"));
+		
+	}
 	return TRUE; // return TRUE unless you set the focus to a control
 }
 
@@ -2083,6 +2093,9 @@ void CUIforETWDlg::OnContextMenu(CWnd* pWnd, CPoint point)
 		PopupMenu.LoadMenu(IDR_TRACESCONTEXTMENU);
 
 		CMenu *pContextMenu = PopupMenu.GetSubMenu(0);
+
+        // 在这里修改菜单项文本
+        pContextMenu->ModifyMenu(ID_TRACES_BROWSEFOLDER, MF_BYCOMMAND, ID_TRACES_BROWSEFOLDER, _T("打开文件位置(&B)"));
 
 		std::wstring traceFile;
 		std::wstring tracePath;

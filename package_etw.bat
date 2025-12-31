@@ -28,15 +28,15 @@ mkdir %destdir%\third_party\wpt10
 xcopy "%wpt10%%wptredistmsi1%" %destdir%\third_party\wpt10
 xcopy "%wpt10%%wptredistmsi2%" %destdir%\third_party\wpt10
 @if errorlevel 1 goto copyfailure
-xcopy "%wpt10%Licenses\10.0.26100.0\sdk_license.rtf" %destdir%\third_party\wpt10
+xcopy "%wpt10%Licenses\10.0.22621.0\sdk_license.rtf" %destdir%\third_party\wpt10
 @if errorlevel 1 goto copyfailure
 ren %destdir%\third_party\wpt10\sdk_license.rtf LICENSE.rtf
 
 @rem Add VS tools to the path. Also adds signtool.exe to the path.
-set vcvars32="c:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat"
-if exist %vcvars32% goto community_installed
+set vcvars32="c:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
+if exist %vcvars32% goto Enterprise_installed
 set vcvars32="C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat"
-:community_installed
+:Enterprise_installed
 call %vcvars32% amd64
 
 @rem Build DelayedCreateProcess.exe to the bin directory
@@ -59,8 +59,6 @@ devenv /rebuild "release|Win32" DummyChrome\DummyChrome.sln
 devenv /rebuild "release|Win32" ETWProviders\ETWProviders.sln
 @if ERRORLEVEL 1 goto BuildFailure
 devenv /rebuild "release|x64" ETWProviders\ETWProviders.sln
-@if ERRORLEVEL 1 goto BuildFailure
-devenv /rebuild "release|arm64" ETWProviders\ETWProviders.sln
 @if ERRORLEVEL 1 goto BuildFailure
 
 @echo Building RetrieveSymbols
@@ -114,12 +112,6 @@ xcopy %UIforETW%bin\EventEmitter64.exe %destdir%\bin /y
 xcopy %UIforETW%third_party\dbghelp.dll %destdir%\bin /y
 xcopy %UIforETW%third_party\symsrv.dll %destdir%\bin /y
 
-@rem Sign the important (requiring elevation) binaries
-set bindir=%~dp0etwpackage\bin
-@echo Make sure the signing token is inserted and retrieve the Sectigo Code Signing certificate from the password vault
-@pause
-signtool sign /a /d "UIforETW" /du "https://github.com/randomascii/UIforETW/releases" /n "Bruce Dawson" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 %bindir%\UIforETW.exe %bindir%\EventEmitter.exe %bindir%\EventEmitter64.exe %bindir%\flame_graph.exe %bindir%\RetrieveSymbols.exe %bindir%\DelayedCreateProcess.exe %bindir%\DummyChrome.dll %bindir%\ETWProviders.dll %bindir%\ETWProviders64.dll %bindir%\ETWProvidersARM64.dll
-@if not %errorlevel% equ 0 goto signing_failure
 
 @rem Copy the official binaries back to the local copy, for development purposes.
 xcopy /exclude:%UIforETW%excludecopy.txt %destdir%\bin\UIforETW*.exe %UIforETW%bin /y
@@ -182,7 +174,7 @@ copy etwpackage\bin\UIforETW*.exe etwsymbols
 
 @rem Add the PE and PDB files to a local symbol server directory, to get the
 @rem required directory structure:
-if exist etwsymserver rmdir /s/q etwsymserver 
+if exist etwsymserver rmdir /s/q etwsymserver
 "c:\Program Files (x86)\Windows Kits\10\Debuggers\x64\symstore.exe" add /r /f etwsymbols /s etwsymserver /t uiforetw
 @rem Delete the excess files.
 rmdir etwsymserver\000Admin /s/q
@@ -191,11 +183,11 @@ del etwsymserver\refs.ptr /s
 
 @rem Make the redistributable .zip file
 del *.zip 2>nul
-call python3 make_zip_file.py etwpackage.zip etwpackage
+call python make_zip_file.py etwpackage.zip etwpackage
 @echo on
 
 @rem Rename to the current version.
-call python3 rename_to_version.py UIforETW\Version.h
+call python rename_to_version.py UIforETW\Version.h
 @echo on
 
 @echo Now upload the new etwpackage*.zip
@@ -207,17 +199,6 @@ call python3 rename_to_version.py UIforETW\Version.h
 @echo git add UIforETW\VersionCopy.h
 @echo git commit -m "Updating VersionCopy.h for updated version checking"
 @echo git push
-
-cd etwsymserver
-@rem Upload to the randomascii-symbols public symbol server.
-@echo Final step - ready to upload the symbols?
-@echo Make sure the gloud CLI is installed and you are authenticated with gcloud auth login
-@pause
-@rem Recursively upload the symbol server directory structure, compressing the files to save
-@rem both network bandwidth (upload and download) and storage space.
-gcloud storage cp --recursive --gzip-local-all . gs://randomascii-symbols
-cd ..
-@echo on
 
 @exit /b
 

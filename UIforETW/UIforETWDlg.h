@@ -61,7 +61,7 @@ private:
 	// Auto-save trace if tracing to a file runs for longer than this length of time.
 	// Otherwise the trace files can fill hard drives and be unusably large.
 	// This should be configurable. But it is not.
-	static constexpr ULONGLONG kMaxFileTraceMs = 300000;
+	static constexpr ULONGLONG kMaxFileTraceMs = 3600000;
 
 	CButton btStartTracing_;
 	CButton btSaveTraceBuffers_;
@@ -72,10 +72,10 @@ private:
 	bool bCompress_ = true;
 	bool bCswitchStacks_ = true;
 	bool bSampledStacks_ = true;
-	bool bFastSampling_ = false;
-	bool bGPUTracing_ = false;
+	bool bFastSampling_ = true;
+	bool bGPUTracing_ = true;
 	bool bCLRTracing_ = false;
-	bool bShowCommands_ = false;
+	bool bShowCommands_ = true;
 	CButton btCompress_;
 	CButton btCswitchStacks_;
 	CButton btSampledStacks_;
@@ -84,7 +84,7 @@ private:
 	CButton btCLRTracing_;
 	CButton btShowCommands_;
 
-	bool bHeapStacks_ = true;
+	bool bHeapStacks_ = false;
 
 	// Set this to true if _NT_SYMBOL_PATH is not set.
 	bool bManageSymbolPath_ = false;
@@ -102,7 +102,7 @@ private:
 
 	bool useChromeProviders_ = false;
 
-	KeyLoggerState InputTracing_ = kKeyLoggerAnonymized;
+	KeyLoggerState InputTracing_ = kKeyLoggerOff;
 	CComboBox btInputTracing_;
 	CStatic btInputTracingLabel_;
 
@@ -111,7 +111,7 @@ private:
 	// on a large-memory machine.
 	int BufferCountBoost(int requestCount) const noexcept;
 	CComboBox btTracingMode_;
-	std::wstring heapTracingExes_ = L"chrome.exe";
+	std::wstring heapTracingExes_ = L"DeltaForceClient-Win64-Shipping.exe";
 	void SetHeapTracing(bool forceOff);
 	bool bVirtualAllocStacks_ = false;
 	// ETW keywords, also known as flags, map to Chrome categories.
